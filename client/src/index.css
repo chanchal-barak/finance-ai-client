@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  @apply bg-gray-900 text-white font-sans;
+}
+.container { @apply max-w-5xl mx-auto p-6; }
+.card { @apply bg-gray-800 p-6 rounded-xl shadow-lg; }
+.btn { @apply px-4 py-2 rounded-md bg-gradient-to-r from-indigo-500 to-pink-500 text-white; }
+.input { @apply w-full p-2 rounded-md bg-gray-700 border border-gray-600; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out;
+}
