@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'https://finance-ai-server.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_BASE || "https://finance-ai-server-5zxu.onrender.com/api",
 });
 
 API.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
