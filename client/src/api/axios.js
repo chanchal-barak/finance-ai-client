@@ -1,6 +1,6 @@
 import axios from 'axios';
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'https://finance-ai-server.onrender.com/api'
+  baseURL: import.meta.env.VITE_API_BASE || 'https://finance-ai-server.onrender.com/api/auth',
 });
 API.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
