@@ -1,56 +1,51 @@
-const OpenAI = require("openai");
-const { openaiApiKey } = require("../config");
 const Expense = require("../models/Expense");
 
-const client = new OpenAI({
-  apiKey: openaiApiKey
-});
+// -------------------- MOCK INSIGHTS ENGINE --------------------
+function generateMockInsights(total, categoryTotals) {
+  const entries = Object.entries(categoryTotals);
 
-const fallbackCategories = [
-  "Food","Travel","Shopping","Entertainment","Bills",
-  "Subscriptions","Groceries","Transport","Income","Others"
-];
-async function categorizeItem(item) {
-  const prompt = `
-Classify the category of this transaction.
-
-Transaction: "${item.title || item.description || ""}"
-
-Choose ONLY ONE category from this list:
-${fallbackCategories.join(", ")}
-
-Return EXACTLY this JSON:
-{"category":"CategoryName"}
-`;
-
-  try {
-    const resp = await client.chat.completions.create({
-      model: "gpt-4o-mini", 
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 30
-    });
-
-    let text = resp.choices?.[0]?.message?.content?.trim() || "";
-
-    const match = text.match(/{"category"\s*:\s*"([^"]+)"}/i);
-    if (match) return match[1];
-
-    return "Others";
-  } catch (err) {
-    console.error("AI categorize error:", err.message);
-    return "Others";
+  if (!entries.length) {
+    return "No spending data available for analysis.";
   }
+
+  // Top category
+  const [topCategory, topAmount] = entries.sort(
+    (a, b) => b[1] - a[1]
+  )[0];
+
+  const percent = ((topAmount / total) * 100).toFixed(1);
+
+  let healthScore = 100 - Math.min(60, percent);
+  healthScore = Math.max(30, Math.round(healthScore));
+
+  return `
+Top Spending Category: ${topCategory}
+
+Summary:
+You spent a total of ₹${total} this month. ${percent}% of your expenses went into ${topCategory}.
+
+Risks:
+1. High dependency on ${topCategory} spending.
+2. Reduced flexibility for savings and emergencies.
+
+Saving Tips:
+• Set a monthly limit for ${topCategory}.
+• Track daily expenses more frequently.
+• Allocate at least 20% of income to savings.
+
+Financial Health Score: ${healthScore}/100
+`;
 }
 
+// -------------------- CATEGORIZATION (OPTIONAL MOCK) --------------------
 exports.categorizeTransactions = async (items) => {
-  const results = [];
-  for (const it of items) {
-    const category = await categorizeItem(it);
-    results.push({ ...it, category });
-  }
-  return results;
+  return items.map((item) => ({
+    ...item,
+    category: item.category || "Others",
+  }));
 };
 
+// -------------------- INSIGHTS (MOCK AI) --------------------
 exports.getInsights = async (req, res) => {
   try {
     const { year, month } = req.params;
@@ -60,72 +55,34 @@ exports.getInsights = async (req, res) => {
 
     const expenses = await Expense.find({
       userId: req.user.id,
-      date: { $gte: start, $lt: end }
+      date: { $gte: start, $lt: end },
     });
 
     if (!expenses.length) {
       return res.json({
         total: 0,
         categoryTotals: {},
-        insights: "No expenses found for this month."
+        insights: "No expenses found for this month.",
       });
     }
 
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const categoryTotals = {};
 
-    const categories = {};
     expenses.forEach((e) => {
-      categories[e.category] = (categories[e.category] || 0) + e.amount;
+      categoryTotals[e.category] =
+        (categoryTotals[e.category] || 0) + e.amount;
     });
 
-    const prompt = `
-You are a financial analytics assistant.
-
-Based on the user's monthly expense data below, generate PROFESSIONAL, clear, and actionable insights.
-
-Total Spending: ₹${total}
-
-Category Breakdown:
-${Object.entries(categories).map(([k,v]) => `${k}: ₹${v}`).join("\n")}
-
-Provide insights in the EXACT format below:
-
-Top Category
-Explain which category is highest and why it may be high.
-
-Summary
-Describe spending habits and patterns.
-
-Unusual Findings
-Detect spikes, irregular activity, or risky trends.
-
-Suggestions
-- 3 easy and practical tips to save more
-
-Forecast
-Predict next month's spending range.
-
-Financial Health Score
-Give a score from 0–100 based on the data.
-`;
-
-    const resp = await client.chat.completions.create({
-      model: "gpt-4o-mini", 
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 250
-    });
-
-    const insights =
-      resp.choices?.[0]?.message?.content?.trim() || "No insights available.";
+    const insights = generateMockInsights(total, categoryTotals);
 
     res.json({
       total,
-      categoryTotals: categories,
-      insights
+      categoryTotals,
+      insights,
     });
-
   } catch (err) {
-    console.error("AI Insights Error:", err);
+    console.error("Mock AI Error:", err.message);
     res.status(500).json({ message: "AI error" });
   }
 };

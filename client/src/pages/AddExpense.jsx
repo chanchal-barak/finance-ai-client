@@ -20,7 +20,9 @@ export default function AddExpense() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -37,8 +39,19 @@ export default function AddExpense() {
 
   const submit = async (e) => {
     e.preventDefault();
+
+    if (!title || !amount || !category || !date) {
+      setError("All fields are required");
+      return;
+    }
+
     try {
-      await API.post("/expenses/create", { title, amount, category, date });
+      await API.post("/expenses/create", {
+        title,
+        amount,
+        category,
+        date,
+      });
       setError(null);
       setSuccess("Expense saved successfully!");
       setTimeout(() => navigate("/"), 1200);
@@ -50,8 +63,6 @@ export default function AddExpense() {
 
   return (
     <div className="bg-[#101726] p-6 rounded-2xl max-w-lg mx-auto shadow-xl text-white">
-
-      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-gray-300 hover:text-white mb-4"
@@ -61,33 +72,26 @@ export default function AddExpense() {
 
       <h2 className="text-3xl font-bold mb-6">Add New Expense</h2>
 
-      {/* Success Message */}
       {success && (
-        <div className="bg-green-600/20 border border-green-400 text-green-300 p-4 rounded-xl mb-4 animate-fadeIn">
-          <p className="font-semibold text-lg">✔ Expense Added</p>
-          <p className="text-sm mt-1">{success}</p>
+        <div className="bg-green-600/20 border border-green-400 text-green-300 p-4 rounded-xl mb-4">
+          {success}
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
-        <div className="bg-red-600/20 border border-red-400 text-red-300 p-4 rounded-xl mb-4 animate-fadeIn">
-          <p className="font-semibold text-lg">⚠ Something went wrong</p>
-          <p className="text-sm mt-1">{error}</p>
+        <div className="bg-red-600/20 border border-red-400 text-red-300 p-4 rounded-xl mb-4">
+          {error}
         </div>
       )}
 
       <form onSubmit={submit} className="flex flex-col gap-5">
-
-        {/* Title */}
         <input
           className="p-3 bg-[#161e32] rounded-lg border border-gray-700 text-gray-300"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Expense Title (e.g., Domino's, Ola Ride)"
+          placeholder="Expense Title"
         />
 
-        {/* Amount */}
         <div>
           <input
             className="p-3 w-full bg-[#161e32] rounded-lg border border-gray-700 text-gray-300"
@@ -98,17 +102,16 @@ export default function AddExpense() {
           />
           {amount && (
             <p className="text-gray-400 text-sm mt-1">
-              Formatted: <span className="text-purple-400">{formattedAmount}</span>
+              {formattedAmount}
             </p>
           )}
         </div>
 
-        {/* Category with Suggestions */}
         <div className="relative">
           <input
             className="p-3 w-full bg-[#161e32] rounded-lg border border-gray-700 text-gray-300"
             value={category}
-            placeholder="Category (type or choose)"
+            placeholder="Category"
             onChange={(e) => {
               setCategory(e.target.value);
               setShowSuggestions(true);
@@ -119,18 +122,17 @@ export default function AddExpense() {
             onFocus={() => setShowSuggestions(true)}
           />
 
-          {/* Suggestion Dropdown */}
           {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="absolute w-full bg-[#1a2238] border border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto z-50 shadow-lg">
+            <div className="absolute w-full bg-[#1a2238] border border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto z-50">
               {filteredSuggestions.map((item) => (
                 <button
-                  type="button"
                   key={item}
-                  onClick={() => {
+                  type="button"
+                  onMouseDown={() => {
                     setCategory(item);
                     setShowSuggestions(false);
                   }}
-                  className="w-full text-left px-4 py-2 cursor-pointer hover:bg-[#222c45] rounded"
+                  className="w-full text-left px-4 py-2 hover:bg-[#222c45]"
                 >
                   {item}
                 </button>
@@ -139,7 +141,6 @@ export default function AddExpense() {
           )}
         </div>
 
-        {/* Date */}
         <input
           className="p-3 bg-[#161e32] rounded-lg border border-gray-700 text-gray-300"
           value={date}
@@ -147,24 +148,20 @@ export default function AddExpense() {
           type="date"
         />
 
-        {/* Submit Button */}
         <button
-          className="py-3 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-lg hover:opacity-90"
+          className="py-3 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl"
           type="submit"
         >
           Save Expense
         </button>
       </form>
 
-      {/* Live Preview */}
       {(title || amount || category || date) && (
-        <div className="mt-8 bg-[#161e32] p-5 rounded-2xl border border-gray-700 animate-fadeIn">
-          <h3 className="text-xl font-semibold mb-3 text-purple-400">Live Preview</h3>
-
-          <p><strong>Title:</strong> {title || "—"}</p>
-          <p><strong>Amount:</strong> {formattedAmount}</p>
-          <p><strong>Category:</strong> {category || "—"}</p>
-          <p><strong>Date:</strong> {date ? new Date(date).toLocaleDateString() : "—"}</p>
+        <div className="mt-8 bg-[#161e32] p-5 rounded-2xl border border-gray-700">
+          <p>{title}</p>
+          <p>{formattedAmount}</p>
+          <p>{category}</p>
+          <p>{new Date(date).toLocaleDateString()}</p>
         </div>
       )}
     </div>

@@ -1,18 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
-const { getInsights, categorizeTransactions } = require('../controllers/aiController');
+const auth = require("../middleware/authMiddleware");
+const {
+  getInsights,
+  categorizeTransactions,
+} = require("../controllers/aiController");
 
-router.post('/categorize', auth, async (req, res) => {
+router.post("/categorize", auth, async (req, res) => {
   try {
     const items = req.body.items || [];
-    const result = await categorizeTransactions(items);
-    res.json(result);
+    const data = await categorizeTransactions(items);
+    res.json(data);
   } catch (err) {
-    res.status(500).json({ message: 'AI error' });
+    res.status(500).json({ message: "AI error" });
   }
 });
-
-router.get('/insights/:year/:month', auth, getInsights);
+router.get("/insights/:year/:month", auth, getInsights);
 
 module.exports = router;
