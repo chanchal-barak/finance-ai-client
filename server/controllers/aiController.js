@@ -1,6 +1,5 @@
 const Expense = require("../models/Expense");
 
-// -------------------- MOCK INSIGHTS ENGINE --------------------
 function generateMockInsights(total, categoryTotals) {
   const entries = Object.entries(categoryTotals);
 
@@ -8,7 +7,6 @@ function generateMockInsights(total, categoryTotals) {
     return "No spending data available for analysis.";
   }
 
-  // Top category
   const [topCategory, topAmount] = entries.sort(
     (a, b) => b[1] - a[1]
   )[0];
@@ -37,7 +35,6 @@ Financial Health Score: ${healthScore}/100
 `;
 }
 
-// -------------------- CATEGORIZATION (OPTIONAL MOCK) --------------------
 exports.categorizeTransactions = async (items) => {
   return items.map((item) => ({
     ...item,
@@ -45,7 +42,6 @@ exports.categorizeTransactions = async (items) => {
   }));
 };
 
-// -------------------- INSIGHTS (MOCK AI) --------------------
 exports.getInsights = async (req, res) => {
   try {
     const { year, month } = req.params;

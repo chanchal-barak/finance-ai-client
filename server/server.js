@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 const { port, mongoUri } = require("./config");
 
 const authRoutes = require("./routes/auth");
@@ -26,6 +27,15 @@ app.use("/api/savings", savingRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/ai", aiRoutes);
 
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../client/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(
+      path.resolve(__dirname, "../client/dist", "index.html")
+    );
+  });
+}
 mongoose
   .connect(mongoUri)
   .then(() => {
