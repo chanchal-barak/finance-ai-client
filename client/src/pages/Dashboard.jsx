@@ -51,7 +51,8 @@ export default function Dashboard() {
     setLoading(true);
     try {
       const res = await API.get(`/expenses/monthly/${year}/${month}`);
-      setData(res.data || []);
+      setData(Array.isArray(res.data) ? res.data : []);
+
     } catch {
       setData([]);
     } finally {
